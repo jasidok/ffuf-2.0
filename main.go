@@ -132,6 +132,24 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	flag.StringVar(&opts.Output.OutputDirectory, "od", opts.Output.OutputDirectory, "Directory path to store matched results to.")
 	flag.StringVar(&opts.Output.OutputFile, "o", opts.Output.OutputFile, "Write output to file")
 	flag.StringVar(&opts.Output.OutputFormat, "of", opts.Output.OutputFormat, "Output file format. Available formats: json, ejson, html, md, csv, ecsv (or, 'all' for all formats)")
+
+	// API-specific flags
+	flag.BoolVar(&opts.API.Enabled, "api-mode", opts.API.Enabled, "Enable API testing mode")
+	flag.BoolVar(&opts.API.OutputFormat, "api-output", opts.API.OutputFormat, "Enable API-specific output formatting with syntax highlighting")
+	flag.StringVar(&opts.API.WordlistPath, "api-wordlist", opts.API.WordlistPath, "Path to API endpoint wordlist")
+	flag.StringVar(&opts.API.WordlistCategory, "api-wordlist-category", opts.API.WordlistCategory, "Category of API endpoints to use from wordlist")
+	flag.StringVar(&opts.API.AuthType, "api-auth-type", opts.API.AuthType, "API authentication type (basic, bearer, apikey)")
+	flag.StringVar(&opts.API.AuthUsername, "api-auth-user", opts.API.AuthUsername, "Username for API authentication")
+	flag.StringVar(&opts.API.AuthPassword, "api-auth-pass", opts.API.AuthPassword, "Password for API authentication")
+	flag.StringVar(&opts.API.AuthToken, "api-auth-token", opts.API.AuthToken, "Token for API authentication")
+	flag.StringVar(&opts.API.AuthAPIKey, "api-auth-key", opts.API.AuthAPIKey, "API key for authentication")
+	flag.StringVar(&opts.API.AuthAPIKeyName, "api-auth-key-name", opts.API.AuthAPIKeyName, "Name of the API key header or parameter")
+	flag.StringVar(&opts.API.AuthAPIKeyLoc, "api-auth-key-loc", opts.API.AuthAPIKeyLoc, "Location of the API key (header, query, cookie)")
+	flag.StringVar(&opts.API.PayloadFormat, "api-payload-format", opts.API.PayloadFormat, "Format of API payload (json, xml, graphql, formdata)")
+	flag.StringVar(&opts.API.PayloadTemplate, "api-payload-template", opts.API.PayloadTemplate, "Template for API payload")
+	flag.StringVar(&opts.API.PayloadPath, "api-payload-path", opts.API.PayloadPath, "Path in the payload where the FUZZ keyword should be inserted")
+	flag.BoolVar(&opts.API.ParseResponseBody, "api-parse-response", opts.API.ParseResponseBody, "Parse API response body")
+	flag.BoolVar(&opts.API.ExtractEndpoints, "api-extract-endpoints", opts.API.ExtractEndpoints, "Extract API endpoints from responses")
 	flag.Var(&autocalibrationstrings, "acc", "Custom auto-calibration string. Can be used multiple times. Implies -ac")
 	flag.Var(&autocalibrationstrategies, "acs", "Custom auto-calibration strategies. Can be used multiple times. Implies -ac")
 	flag.Var(&cookies, "b", "Cookie data `\"NAME1=VALUE1; NAME2=VALUE2\"` for copy as curl functionality.")
@@ -283,8 +301,12 @@ func prepareJob(conf *ffuf.Config) (*ffuf.Job, error) {
 	if len(conf.ReplayProxyURL) > 0 {
 		job.ReplayRunner = runner.NewRunnerByName("http", conf, true)
 	}
-	// We only have stdout outputprovider right now
-	job.Output = output.NewOutputProviderByName("stdout", conf)
+	// Select the appropriate output provider
+	if conf.APIOutputFormat {
+		job.Output = output.NewOutputProviderByName("api", conf)
+	} else {
+		job.Output = output.NewOutputProviderByName("stdout", conf)
+	}
 
 	// Initialize the audit logger if specified
 	if len(conf.AuditLog) > 0 {

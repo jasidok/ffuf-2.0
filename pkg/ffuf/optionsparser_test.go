@@ -178,3 +178,56 @@ func TestReplayProxyParsing(t *testing.T) {
 		t.Errorf("Expected proxy string with unsupported protocol to fail")
 	}
 }
+
+func TestAPIOptionsParsing(t *testing.T) {
+	configOptions := NewConfigOptions()
+
+	// Set API options
+	configOptions.API.Enabled = true
+	configOptions.API.WordlistPath = "/path/to/api/wordlist"
+	configOptions.API.WordlistCategory = "rest"
+	configOptions.API.AuthType = "bearer"
+	configOptions.API.AuthToken = "test-token"
+	configOptions.API.PayloadFormat = "json"
+	configOptions.API.PayloadTemplate = `{"test":"FUZZ"}`
+	configOptions.API.ParseResponseBody = true
+
+	// Create config from options
+	config, err := ConfigFromOptions(configOptions, nil, nil)
+	if err != nil {
+		t.Errorf("Failed to create config from options: %v", err)
+	}
+
+	// Verify API options were transferred correctly
+	if !config.APIMode {
+		t.Errorf("Expected APIMode to be true, got false")
+	}
+
+	if config.APIWordlistPath != "/path/to/api/wordlist" {
+		t.Errorf("Expected APIWordlistPath to be '/path/to/api/wordlist', got '%s'", config.APIWordlistPath)
+	}
+
+	if config.APIWordlistCategory != "rest" {
+		t.Errorf("Expected APIWordlistCategory to be 'rest', got '%s'", config.APIWordlistCategory)
+	}
+
+	if config.APIAuthType != "bearer" {
+		t.Errorf("Expected APIAuthType to be 'bearer', got '%s'", config.APIAuthType)
+	}
+
+	if config.APIAuthToken != "test-token" {
+		t.Errorf("Expected APIAuthToken to be 'test-token', got '%s'", config.APIAuthToken)
+	}
+
+	if config.APIPayloadFormat != "json" {
+		t.Errorf("Expected APIPayloadFormat to be 'json', got '%s'", config.APIPayloadFormat)
+	}
+
+	if config.APIPayloadTemplate != `{"test":"FUZZ"}` {
+		t.Errorf("Expected APIPayloadTemplate to be '{\"test\":\"FUZZ\"}', got '%s'", config.APIPayloadTemplate)
+	}
+
+	if !config.APIParseResponseBody {
+		t.Errorf("Expected APIParseResponseBody to be true, got false")
+	}
+}

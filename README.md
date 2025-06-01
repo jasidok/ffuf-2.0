@@ -4,6 +4,7 @@
 A fast web fuzzer written in Go.
 
 - [Installation](https://github.com/ffuf/ffuf#installation)
+- [Quick Start](https://github.com/ffuf/ffuf#quick-start)
 - [Example usage](https://github.com/ffuf/ffuf#example-usage)
     - [Content discovery](https://github.com/ffuf/ffuf#typical-directory-discovery)
     - [Vhost discovery](https://github.com/ffuf/ffuf#virtual-host-discovery-without-dns-records)
@@ -11,9 +12,61 @@ A fast web fuzzer written in Go.
     - [POST data fuzzing](https://github.com/ffuf/ffuf#post-data-fuzzing)
     - [Using external mutator](https://github.com/ffuf/ffuf#using-external-mutator-to-produce-test-cases)
     - [Configuration files](https://github.com/ffuf/ffuf#configuration-files)
+- [API Testing](https://github.com/ffuf/ffuf#api-testing)
+- [Documentation](https://github.com/ffuf/ffuf#documentation)
 - [Help](https://github.com/ffuf/ffuf#usage)
     - [Interactive mode](https://github.com/ffuf/ffuf#interactive-mode)
 
+## Documentation
+
+### Complete Documentation
+
+- **[Getting Started Guide](docs/GETTING_STARTED.md)** - Step-by-step guide for beginners
+- **[FAQ](docs/FAQ.md)** - Frequently asked questions and troubleshooting
+- **[User Wiki](https://github.com/ffuf/ffuf/wiki)** - Comprehensive documentation with examples
+- **[API Testing Guide](docs/api/guide.md)** - Complete guide to API testing with ffuf
+- **[API Workflows](docs/api/workflows.md)** - Common API testing scenarios and examples
+- **[API Cheat Sheet](docs/api/cheatsheet.md)** - Quick reference for API testing
+- **[Integration Guide](docs/api/integration.md)** - Integrating ffuf with other tools
+
+### External Resources
+
+- *
+  *[Everything you need to know about FFUF](https://codingo.io/tools/ffuf/bounty/2020/09/17/everything-you-need-to-know-about-ffuf.html)
+  ** by Michael Skelton
+- **[FFUF Practice Platform](http://ffuf.me)** - Live hosted environment for practicing
+- **[Docker Practice Environment](https://github.com/adamtlangley/ffufme)** - Local practice environment
+
+### Getting Help
+
+- **Built-in Help**: Run `ffuf -h` for complete command reference
+- **Interactive Mode**: Press ENTER during execution for interactive help
+- **Issues**: Report bugs or feature requests on [GitHub Issues](https://github.com/ffuf/ffuf/issues)
+- **Discussions**: Join community discussions on [GitHub Discussions](https://github.com/ffuf/ffuf/discussions)
+
+## Quick Start
+
+### Basic Usage
+
+```bash
+# Directory discovery
+ffuf -w /path/to/wordlist -u https://target/FUZZ
+
+# With common filters
+ffuf -w /path/to/wordlist -u https://target/FUZZ -mc all -fs 4242 -c -v
+```
+
+### API Testing Quick Start
+
+```bash
+# Enable API mode with built-in wordlists
+ffuf -api-mode -u https://api.target.com/FUZZ -H "Authorization: Bearer token"
+
+# Test JSON endpoints
+ffuf -w api_endpoints.txt -u https://api.target.com/FUZZ -H "Content-Type: application/json" -mc all -fr "error"
+```
+
+For more examples, see the [Getting Started Guide](docs/GETTING_STARTED.md) and [API Testing Guide](docs/api/guide.md).
 
 ## Installation
 
@@ -21,10 +74,10 @@ A fast web fuzzer written in Go.
 
   _or_
 - If you are on macOS with [homebrew](https://brew.sh), ffuf can be installed with: `brew install ffuf`
-  
+
   _or_
 - If you have recent go compiler installed: `go install github.com/ffuf/ffuf/v2@latest` (the same command works for updating)
-  
+
   _or_
 - `git clone https://github.com/ffuf/ffuf ; cd ffuf ; go get ; go build`
 
@@ -144,6 +197,32 @@ parameter.
 <p align="center">
   <img width="250" src="_img/ffuf_juggling_250.png">
 </p>
+
+## API Testing
+
+ffuf is a powerful tool for testing and fuzzing web APIs. As the project is moving in an API-focused direction, here are some examples of how to use ffuf for API testing:
+
+### Testing REST APIs
+
+```
+# Fuzzing API endpoints
+ffuf -w /path/to/wordlist -u https://api.example.com/FUZZ -H "Content-Type: application/json" -H "Authorization: Bearer token"
+
+# Fuzzing JSON parameters
+ffuf -w /path/to/wordlist -u https://api.example.com/endpoint -X POST -H "Content-Type: application/json" -d '{"FUZZ":"value"}' -fr "error"
+
+# Fuzzing JSON values
+ffuf -w /path/to/wordlist -u https://api.example.com/endpoint -X POST -H "Content-Type: application/json" -d '{"key":"FUZZ"}' -fr "error"
+```
+
+### Testing GraphQL APIs
+
+```
+# Fuzzing GraphQL queries
+ffuf -w /path/to/wordlist -u https://api.example.com/graphql -X POST -H "Content-Type: application/json" -d '{"query":"{ FUZZ { id name } }"}' -fr "error"
+```
+
+For more detailed information about API testing with ffuf, including advanced techniques and best practices, see the [API Guidelines](https://github.com/ffuf/ffuf/blob/master/docs/api_guidelines.md) document.
 
 ## Usage
 

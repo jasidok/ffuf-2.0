@@ -68,6 +68,23 @@ type Config struct {
 	Http2                     bool                  `json:"http2"`
 	ClientCert                string                `json:"client-cert"`
 	ClientKey                 string                `json:"client-key"`
+	// API-specific options
+	APIMode                   bool                  `json:"api_mode"`
+	APIWordlistPath           string                `json:"api_wordlist_path"`
+	APIWordlistCategory       string                `json:"api_wordlist_category"`
+	APIAuthType               string                `json:"api_auth_type"`
+	APIAuthUsername           string                `json:"api_auth_username"`
+	APIAuthPassword           string                `json:"api_auth_password"`
+	APIAuthToken              string                `json:"api_auth_token"`
+	APIAuthAPIKey             string                `json:"api_auth_api_key"`
+	APIAuthAPIKeyName         string                `json:"api_auth_api_key_name"`
+	APIAuthAPIKeyLoc          string                `json:"api_auth_api_key_loc"`
+	APIPayloadFormat          string                `json:"api_payload_format"`
+	APIPayloadTemplate        string                `json:"api_payload_template"`
+	APIPayloadPath            string                `json:"api_payload_path"`
+	APIParseResponseBody      bool                  `json:"api_parse_response_body"`
+	APIExtractEndpoints       bool                  `json:"api_extract_endpoints"`
+	APIOutputFormat           bool                  `json:"api_output_format"`
 }
 
 type InputProviderConfig struct {
@@ -127,6 +144,25 @@ func NewConfig(ctx context.Context, cancel context.CancelFunc) Config {
 	conf.Verbose = false
 	conf.Wordlists = []string{}
 	conf.Http2 = false
+
+	// Initialize API-specific options
+	conf.APIMode = false
+	conf.APIWordlistPath = ""
+	conf.APIWordlistCategory = ""
+	conf.APIAuthType = ""
+	conf.APIAuthUsername = ""
+	conf.APIAuthPassword = ""
+	conf.APIAuthToken = ""
+	conf.APIAuthAPIKey = ""
+	conf.APIAuthAPIKeyName = ""
+	conf.APIAuthAPIKeyLoc = "header"
+	conf.APIPayloadFormat = "json"
+	conf.APIPayloadTemplate = ""
+	conf.APIPayloadPath = ""
+	conf.APIParseResponseBody = false
+	conf.APIExtractEndpoints = false
+	conf.APIOutputFormat = false
+
 	return conf
 }
 

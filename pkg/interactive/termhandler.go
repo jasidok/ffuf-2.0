@@ -11,12 +11,17 @@ import (
 )
 
 type interactive struct {
-	Job    *ffuf.Job
-	paused bool
+	Job        *ffuf.Job
+	paused     bool
+	apiConsole *APIConsole
 }
 
 func Handle(job *ffuf.Job) error {
-	i := interactive{job, false}
+	i := interactive{
+		Job:        job,
+		paused:     false,
+		apiConsole: NewAPIConsole(job),
+	}
 	tty, err := termHandle()
 	if err != nil {
 		return err
@@ -43,7 +48,28 @@ func (i *interactive) handleInput(in []byte) {
 		} else {
 			i.Job.Resume()
 		}
+	} else if i.paused && args[0] == "api" && i.Job.Config.APIMode {
+		// API console mode
+		if len(args) > 1 && args[1] == "start" {
+			i.Job.Output.Info("Entering API console mode")
+			i.apiConsole.printHelp()
+		} else if len(args) > 1 {
+			// Pass the command to the API console
+			i.apiConsole.HandleCommand(args[1:])
+		} else {
+			i.Job.Output.Info("Use 'api start' to enter API console mode or 'api help' for API console commands")
+		}
 	} else {
+		// Check for API console commands
+		if args[0] == "api" && i.Job.Config.APIMode {
+			if len(args) > 1 {
+				i.apiConsole.HandleCommand(args[1:])
+			} else {
+				i.Job.Output.Info("Use 'api help' for API console commands")
+			}
+			return
+		}
+
 		switch args[0] {
 		case "?":
 			i.printHelp()
@@ -293,6 +319,16 @@ func (i *interactive) printHelp() {
 		}
 	}
 	rate := fmt.Sprintf("(active: %d)", i.Job.Config.Rate)
+
+	apiHelp := ""
+	if i.Job.Config.APIMode {
+		apiHelp = `
+ api start                 - enter API testing console with request builder
+ api help                  - show API console commands
+ api [command]             - execute API console command (see 'api help' for details)
+`
+	}
+
 	help := `
 available commands:
  afc  [value]             - append to status code filter %s
@@ -313,7 +349,7 @@ available commands:
  resume                   - resume current ffuf job (or: ENTER) 
  show                     - show results for the current job
  savejson [filename]      - save current matches to a file
- help                     - you are looking at it
+ help                     - you are looking at it%s
 `
-	i.Job.Output.Raw(fmt.Sprintf(help, fc, fc, fl, fl, fw, fw, fs, fs, ft, ft, rate))
+	i.Job.Output.Raw(fmt.Sprintf(help, fc, fc, fl, fl, fw, fw, fs, fs, ft, ft, rate, apiHelp))
 }

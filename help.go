@@ -98,7 +98,14 @@ func Usage() {
 		Hidden:        false,
 		ExpectedFlags: []string{"audit-log", "debug-log", "o", "of", "od", "or"},
 	}
-	sections := []UsageSection{u_http, u_general, u_compat, u_matcher, u_filter, u_input, u_output}
+	u_api := UsageSection{
+		Name:          "API OPTIONS",
+		Description:   "Options for API testing mode and specialized API functionality.",
+		Flags:         make([]UsageFlag, 0),
+		Hidden:        false,
+		ExpectedFlags: []string{"api-mode", "api-output", "api-wordlist", "api-wordlist-category", "api-auth-type", "api-auth-user", "api-auth-pass", "api-auth-token", "api-auth-key", "api-auth-key-name", "api-auth-key-loc", "api-payload-format", "api-payload-template", "api-payload-path", "api-parse-response", "api-extract-endpoints"},
+	}
+	sections := []UsageSection{u_http, u_general, u_compat, u_matcher, u_filter, u_input, u_output, u_api}
 
 	// Populate the flag sections
 	max_length := 0
@@ -147,5 +154,17 @@ func Usage() {
 	fmt.Printf("  Fuzz multiple locations. Match only responses reflecting the value of \"VAL\" keyword. Colored.\n")
 	fmt.Printf("    ffuf -w params.txt:PARAM -w values.txt:VAL -u https://example.org/?PARAM=VAL -mr \"VAL\" -c\n\n")
 
-	fmt.Printf("  More information and examples: https://github.com/ffuf/ffuf\n\n")
+	fmt.Printf("  API endpoint discovery using built-in wordlists.\n")
+	fmt.Printf("    ffuf -api-mode -u https://api.example.com/FUZZ -H \"Authorization: Bearer token\"\n\n")
+
+	fmt.Printf("  GraphQL API testing with custom queries.\n")
+	fmt.Printf("    ffuf -w graphql.txt -u https://api.example.com/graphql -X POST -H \"Content-Type: application/json\" \\\n")
+	fmt.Printf("      -d '{\"query\":\"FUZZ\"}' -mc all -fr \"error\"\n\n")
+
+	fmt.Printf("  JSON parameter fuzzing for REST APIs.\n")
+	fmt.Printf("    ffuf -w params.txt -u https://api.example.com/endpoint -X POST -H \"Content-Type: application/json\" \\\n")
+	fmt.Printf("      -d '{\"FUZZ\":\"value\"}' -api-parse-response\n\n")
+
+	fmt.Printf("  More information and examples: https://github.com/ffuf/ffuf\n")
+	fmt.Printf("  API Testing Documentation: https://github.com/ffuf/ffuf/tree/master/docs/api\n\n")
 }

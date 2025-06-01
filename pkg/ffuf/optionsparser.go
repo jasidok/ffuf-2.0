@@ -23,6 +23,7 @@ type ConfigOptions struct {
 	Input   InputOptions   `json:"input"`
 	Matcher MatcherOptions `json:"matchers"`
 	Output  OutputOptions  `json:"output"`
+	API     APIOptions     `json:"api"`
 }
 
 type HTTPOptions struct {
@@ -115,6 +116,25 @@ type MatcherOptions struct {
 	Words  string `json:"words"`
 }
 
+type APIOptions struct {
+	Enabled           bool   `json:"enabled"`
+	OutputFormat      bool   `json:"output_format"`
+	WordlistPath      string `json:"wordlist_path"`
+	WordlistCategory  string `json:"wordlist_category"`
+	AuthType          string `json:"auth_type"`
+	AuthUsername      string `json:"auth_username"`
+	AuthPassword      string `json:"auth_password"`
+	AuthToken         string `json:"auth_token"`
+	AuthAPIKey        string `json:"auth_api_key"`
+	AuthAPIKeyName    string `json:"auth_api_key_name"`
+	AuthAPIKeyLoc     string `json:"auth_api_key_loc"`
+	PayloadFormat     string `json:"payload_format"`
+	PayloadTemplate   string `json:"payload_template"`
+	PayloadPath       string `json:"payload_path"`
+	ParseResponseBody bool   `json:"parse_response_body"`
+	ExtractEndpoints  bool   `json:"extract_endpoints"`
+}
+
 // NewConfigOptions returns a newly created ConfigOptions struct with default values
 func NewConfigOptions() *ConfigOptions {
 	c := &ConfigOptions{}
@@ -180,6 +200,21 @@ func NewConfigOptions() *ConfigOptions {
 	c.Output.OutputFile = ""
 	c.Output.OutputFormat = "json"
 	c.Output.OutputSkipEmptyFile = false
+	c.API.Enabled = false
+	c.API.WordlistPath = ""
+	c.API.WordlistCategory = ""
+	c.API.AuthType = ""
+	c.API.AuthUsername = ""
+	c.API.AuthPassword = ""
+	c.API.AuthToken = ""
+	c.API.AuthAPIKey = ""
+	c.API.AuthAPIKeyName = ""
+	c.API.AuthAPIKeyLoc = "header"
+	c.API.PayloadFormat = "json"
+	c.API.PayloadTemplate = ""
+	c.API.PayloadPath = ""
+	c.API.ParseResponseBody = false
+	c.API.ExtractEndpoints = false
 	return c
 }
 
@@ -269,6 +304,13 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		fullpath := ""
 		if wl[0] != "-" {
 			fullpath, err = filepath.Abs(wl[0])
+			// Validate that the file exists
+			if err == nil {
+				if !FileExists(fullpath) {
+					errs.Add(fmt.Errorf("Wordlist file does not exist: %s", fullpath))
+					continue
+				}
+			}
 		} else {
 			fullpath = wl[0]
 		}
@@ -541,6 +583,24 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	conf.Verbose = parseOpts.General.Verbose
 	conf.Json = parseOpts.General.Json
 	conf.Http2 = parseOpts.HTTP.Http2
+
+	// Transfer API-specific options
+	conf.APIMode = parseOpts.API.Enabled
+	conf.APIOutputFormat = parseOpts.API.OutputFormat
+	conf.APIWordlistPath = parseOpts.API.WordlistPath
+	conf.APIWordlistCategory = parseOpts.API.WordlistCategory
+	conf.APIAuthType = parseOpts.API.AuthType
+	conf.APIAuthUsername = parseOpts.API.AuthUsername
+	conf.APIAuthPassword = parseOpts.API.AuthPassword
+	conf.APIAuthToken = parseOpts.API.AuthToken
+	conf.APIAuthAPIKey = parseOpts.API.AuthAPIKey
+	conf.APIAuthAPIKeyName = parseOpts.API.AuthAPIKeyName
+	conf.APIAuthAPIKeyLoc = parseOpts.API.AuthAPIKeyLoc
+	conf.APIPayloadFormat = parseOpts.API.PayloadFormat
+	conf.APIPayloadTemplate = parseOpts.API.PayloadTemplate
+	conf.APIPayloadPath = parseOpts.API.PayloadPath
+	conf.APIParseResponseBody = parseOpts.API.ParseResponseBody
+	conf.APIExtractEndpoints = parseOpts.API.ExtractEndpoints
 
 	// Check that fmode and mmode have sane values
 	valid_opmodes := []string{"and", "or"}
